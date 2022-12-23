@@ -1,6 +1,7 @@
 #include <iostream>
 #include <vector>
 #include <random>
+#include <cmath>
 #include <chrono>
 #include <algorithm>
 #include "ReadCityFile.h"
@@ -19,6 +20,57 @@ void createDummySolutions(vector<int>* dummy_solutions) {
 	}
 }
 
+template <typename ForwardIterator>
+ForwardIterator remove_duplicates(ForwardIterator first, ForwardIterator last)
+{
+	auto new_last = first;
+
+	for (auto current = first; current != last; ++current)
+	{
+		if (find(first, new_last, *current) == new_last)
+		{
+			if (new_last != current)
+				*new_last = *current;
+			++new_last;
+		}
+	}
+
+	return new_last;
+}
+
+vector<int> mateSolutions(vector<int> parent1, vector<int> parent2)
+{
+	vector<int> solutionChild;
+	int last = 0;
+
+	for (int i = 0; i < floor(parent1.size() / 6); i++)
+	{
+		for (int j = i * 6; j < (i + 1) * 6; j++)
+		{
+			solutionChild.push_back(parent1.at(j));
+		}
+
+		for (int j = i * 6; j < (i + 1) * 6; j++)
+		{
+			solutionChild.push_back(parent2.at(j));
+			last = j;
+		}
+	}
+
+	for (int i = last; i < parent1.size() - 1; i++)
+	{
+		solutionChild.push_back(parent1.at(i));
+	}
+
+	for (int i = last; i < parent1.size() - 1; i++)
+	{
+		solutionChild.push_back(parent2.at(i));
+	}
+
+	solutionChild.erase(remove_duplicates(solutionChild.begin(), solutionChild.end()), solutionChild.end());
+	return solutionChild;
+}
+
 void sortSolutionsByDistance(vector<Solution*>* solutions) {
 	int i, j;
 
@@ -33,7 +85,8 @@ void sortSolutionsByDistance(vector<Solution*>* solutions) {
 int main()
 {
 	//defining const
-	const SAMPLE_SIZE = 100;
+	const int PARENT_SIZE = 1000;
+	const int GENERATION_SIZE = 10000;
 
 	//Getting number of cities in file
     int number_of_cities = ReadCityFile::cityCount();
@@ -50,11 +103,11 @@ int main()
 	createDummySolutions(&dummy_solution);
 
 	//creating generation of solutions, first generation
-	vector<Solution*>solutions(1000);
+	vector<Solution*>solutions(GENERATION_SIZE);
 	
 	
 
-	for (int i = 0; i < 1000; i++)
+	for (int i = 0; i < GENERATION_SIZE; i++)
 	{
 		shuffle(dummy_solution.begin(), dummy_solution.end(), default_random_engine(static_cast<unsigned int>(chrono::system_clock::now().time_since_epoch().count())));
 		solutions.at(i) = new Solution(dummy_solution);
@@ -62,5 +115,48 @@ int main()
 	}
 	sortSolutionsByDistance(&solutions);
 
+	double current_shortest_path = solutions.at(0)->distance;
+	vector<Solution*> parents;
 	
+	for (int igen = 0; igen < 30; igen++) {
+
+		
+		copy(solutions.begin(), solutions.begin() + PARENT_SIZE, back_inserter(parents));
+
+
+		solutions.clear();
+
+
+		for (int i = 0; i < floor(PARENT_SIZE / 8); i++) {
+			solutions.push_back(parents.at(i));
+		}
+
+		srand(time(0));
+		for (int i = floor(PARENT_SIZE / 8); i < GENERATION_SIZE; i++) {
+			solutions.push_back(new Solution(mateSolutions(parents.at((rand() % PARENT_SIZE))->solution, parents.at((rand() % PARENT_SIZE))->solution)));
+			solutions.at(i)->solutionFitness(cityGraphMatrix);
+		}
+
+		sortSolutionsByDistance(&solutions);
+		
+		cout << "Best score for generation " << igen + 1 << " is: " << solutions.at(0)->distance << endl;
+		cout << "Best path for genreation " << igen << "is: ";
+		cout << "{ ";
+		for (int i = 0; i < solutions.at(0)->solution.size(); i++)
+		{
+			cout << solutions.at(0)->solution.at(i) + 1;
+			cout << " , ";
+		}
+		cout << " }";
+		cout << endl;
+
+		if (current_shortest_path == solutions.at(0)->distance) {
+			break;
+		}
+		else {
+			cout << "SOLUTION IS CONVERING!";
+			current_shortest_path = solutions.at(0)->distance;
+		}
+		parents.clear();
+	}
 }
