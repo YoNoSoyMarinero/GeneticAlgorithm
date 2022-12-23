@@ -13,7 +13,20 @@
 
 using namespace std;
 
+//creates vector of tickets, best parent solution will have most tickets
+void createTicketsVector(vector<int>* ticketsVector, int parent_size)
+{
+	int current_ticket = 0;
+	for (int i = parent_size; i >= 0; i--)
+	{
+		for (int j = 0; j < i; j++)
+		{
+			ticketsVector->push_back(current_ticket);
+		}
 
+		++current_ticket;
+	}
+}
 //creates vector with n elements in ascending order 0,1,2,3...n-1
 void createDummySolutions(vector<int>* dummy_solutions) {
 	for (int i = 0; i < dummy_solutions->size(); i++)
@@ -21,7 +34,6 @@ void createDummySolutions(vector<int>* dummy_solutions) {
 		dummy_solutions->at(i) = i;
 	}
 }
-
 //mates two solutions in specific way
 vector<int> mateSolutions(vector<int> parent1, vector<int> parent2)
 {
@@ -66,7 +78,7 @@ vector<int> mateSolutions(vector<int> parent1, vector<int> parent2)
 	return solutionChild;
 }
 //mutates solutions
-void mutateSolution(vector<int>* solution)
+void mutateSolution(vector<int>* solution, int number_of_mutations)
 {
 	for (int i = 0; i < rand() % 3; i++)
 	{
@@ -90,8 +102,9 @@ int main()
 {
 	//defining const
 	const int PARENT_SIZE = 1000;
-	const int GENERATION_SIZE = 10000;
-	const int N_GENERATION = 30;
+	const int GENERATION_SIZE = 11000;
+	const int N_GENERATION = 300;
+	const int N_MUTATIONS = 9;
 	//Getting number of cities in file
     int number_of_cities = ReadCityFile::cityCount();
 
@@ -108,7 +121,11 @@ int main()
 
 	//creating generation of solutions, first generation
 	vector<Solution*>solutions(GENERATION_SIZE);
-	
+
+	//creating tickets vector
+	vector<int> vectorTickets;
+	createTicketsVector(&vectorTickets, PARENT_SIZE);
+	shuffle(vectorTickets.begin(), vectorTickets.end(), default_random_engine(static_cast<unsigned int>(chrono::system_clock::now().time_since_epoch().count())));
 	
 	//creating first generation, shuffling dummy_solutions which are vectors from 0 to number of cities
 	for (int i = 0; i < GENERATION_SIZE; i++)
@@ -138,22 +155,22 @@ int main()
 		//creating new children solutions and mutating them
 		srand(time(0));
 		for (int i = floor(PARENT_SIZE / 8); i < GENERATION_SIZE; i++) {
-			solutions.push_back(new Solution(mateSolutions(parents.at((rand() % PARENT_SIZE))->solution, parents.at((rand() % PARENT_SIZE))->solution)));
+			solutions.push_back(new Solution(mateSolutions(parents.at(vectorTickets.at(rand() % vectorTickets.size()))->solution, parents.at(vectorTickets.at(rand() % vectorTickets.size()))->solution)));
 			solutions.at(i)->solutionFitness(cityGraphMatrix);
-			mutateSolution(&(solutions.at(i)->solution));
+			mutateSolution(&(solutions.at(i)->solution), N_MUTATIONS);
 		}
 
 		//Sorting solutions and displaying the best one in given generation
 		sortSolutionsByDistance(&solutions);
 		cout << "Best score for generation " << igen + 1 << " is: " << solutions.at(0)->distance << endl;
-		cout << "Best path for genreation " << igen + 1 << "is: ";
+		cout << "Best path for genreation " << igen + 1 << " is: ";
 		cout << "{ ";
 		for (int i = 0; i < solutions.at(0)->solution.size(); i++)
 		{
 			cout << solutions.at(0)->solution.at(i) + 1;
-			cout << " , ";
+			cout << " -> ";
 		}
-		cout << " }";
+		cout << " end }";
 		cout << endl;
 
 		//setting the new best path
