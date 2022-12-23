@@ -7,7 +7,7 @@
 
 using namespace std;
 
-
+//creating vector of cities from an array of strings(read_lines from .txt file)
 vector<City>* CityMap::createMap(vector<string>* read_lines, int number_of_cities){
 	vector<City>* cities = new vector<City>();
 	for (size_t i = 0; i < number_of_cities; i++)

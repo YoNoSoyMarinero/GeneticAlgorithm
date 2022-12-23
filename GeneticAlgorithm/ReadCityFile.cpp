@@ -7,6 +7,8 @@
 
 
 using namespace std;
+
+//reading file and returing array of strings that represents each city's name and postion
 vector<string>* ReadCityFile::readFile() {
 	vector<string>* read_lines = new vector<string>();
 	fstream myFile;
@@ -26,7 +28,7 @@ vector<string>* ReadCityFile::readFile() {
 	}
 }
 
-
+//counting cities in file
 int ReadCityFile::cityCount(){
 	int counter = 0;
 	fstream myFile;

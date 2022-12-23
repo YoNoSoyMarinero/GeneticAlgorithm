@@ -5,7 +5,7 @@
 
 using namespace std;
 
-
+//from vector of class City creating one graph that connects all citites matrix representation
 double** CityGraph::getGraph(vector<City>* cities_in_file, int number_of_cities) {
 	double** graph = 0;
 	graph = new double*[number_of_cities];

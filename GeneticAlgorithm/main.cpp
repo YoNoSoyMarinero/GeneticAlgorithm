@@ -13,6 +13,8 @@
 
 using namespace std;
 
+
+//creates vector with n elements in ascending order 0,1,2,3...n-1
 void createDummySolutions(vector<int>* dummy_solutions) {
 	for (int i = 0; i < dummy_solutions->size(); i++)
 	{
@@ -20,6 +22,7 @@ void createDummySolutions(vector<int>* dummy_solutions) {
 	}
 }
 
+//mates two solutions in specific way
 vector<int> mateSolutions(vector<int> parent1, vector<int> parent2)
 {
 	vector<int> solutionChild;
@@ -62,7 +65,7 @@ vector<int> mateSolutions(vector<int> parent1, vector<int> parent2)
 
 	return solutionChild;
 }
-
+//mutates solutions
 void mutateSolution(vector<int>* solution)
 {
 	srand(time(0));
@@ -72,6 +75,7 @@ void mutateSolution(vector<int>* solution)
 	}
 }
 
+//sort solutions
 void sortSolutionsByDistance(vector<Solution*>* solutions) {
 	int i, j;
 
@@ -88,7 +92,7 @@ int main()
 	//defining const
 	const int PARENT_SIZE = 1000;
 	const int GENERATION_SIZE = 10000;
-
+	const int N_GENERATION = 30;
 	//Getting number of cities in file
     int number_of_cities = ReadCityFile::cityCount();
 
@@ -107,40 +111,41 @@ int main()
 	vector<Solution*>solutions(GENERATION_SIZE);
 	
 	
-
+	//creating first generation, shuffling dummy_solutions which are vectors from 0 to number of cities
 	for (int i = 0; i < GENERATION_SIZE; i++)
 	{
 		shuffle(dummy_solution.begin(), dummy_solution.end(), default_random_engine(static_cast<unsigned int>(chrono::system_clock::now().time_since_epoch().count())));
 		solutions.at(i) = new Solution(dummy_solution);
-		mutateSolution(&(solutions.at(i)->solution));
 		solutions.at(i)->solutionFitness(cityGraphMatrix);
 	}
+
+	//sorting solutions
 	sortSolutionsByDistance(&solutions);
 
 	double current_shortest_path = solutions.at(0)->distance;
 	vector<Solution*> parents;
 	
-	for (int igen = 0; igen < 30; igen++) {
 
-		
+	//simulation evolution
+	for (int igen = 0; igen < N_GENERATION; igen++) {
+
+		//creating parents from top N solutions in last generation and getting them back in solutions
 		copy(solutions.begin(), solutions.begin() + PARENT_SIZE, back_inserter(parents));
-
-
 		solutions.clear();
-
-
 		for (int i = 0; i < floor(PARENT_SIZE / 8); i++) {
 			solutions.push_back(parents.at(i));
 		}
 
+		//creating new children solutions and mutating them
 		srand(time(0));
 		for (int i = floor(PARENT_SIZE / 8); i < GENERATION_SIZE; i++) {
 			solutions.push_back(new Solution(mateSolutions(parents.at((rand() % PARENT_SIZE))->solution, parents.at((rand() % PARENT_SIZE))->solution)));
 			solutions.at(i)->solutionFitness(cityGraphMatrix);
+			mutateSolution(&(solutions.at(i)->solution));
 		}
 
+		//Sorting solutions and displaying the best one in given generation
 		sortSolutionsByDistance(&solutions);
-		
 		cout << "Best score for generation " << igen + 1 << " is: " << solutions.at(0)->distance << endl;
 		cout << "Best path for genreation " << igen + 1 << "is: ";
 		cout << "{ ";
@@ -152,7 +157,7 @@ int main()
 		cout << " }";
 		cout << endl;
 
-
+		//setting the new best path
 		current_shortest_path = solutions.at(0)->distance;
 
 		parents.clear();
