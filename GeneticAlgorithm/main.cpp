@@ -20,24 +20,6 @@ void createDummySolutions(vector<int>* dummy_solutions) {
 	}
 }
 
-template <typename ForwardIterator>
-ForwardIterator remove_duplicates(ForwardIterator first, ForwardIterator last)
-{
-	auto new_last = first;
-
-	for (auto current = first; current != last; ++current)
-	{
-		if (find(first, new_last, *current) == new_last)
-		{
-			if (new_last != current)
-				*new_last = *current;
-			++new_last;
-		}
-	}
-
-	return new_last;
-}
-
 vector<int> mateSolutions(vector<int> parent1, vector<int> parent2)
 {
 	vector<int> solutionChild;
@@ -47,28 +29,47 @@ vector<int> mateSolutions(vector<int> parent1, vector<int> parent2)
 	{
 		for (int j = i * 6; j < (i + 1) * 6; j++)
 		{
-			solutionChild.push_back(parent1.at(j));
+			if (!count(solutionChild.begin(), solutionChild.end(), parent1.at(j)))
+			{
+				solutionChild.push_back(parent1.at(j));
+			}
 		}
 
 		for (int j = i * 6; j < (i + 1) * 6; j++)
 		{
-			solutionChild.push_back(parent2.at(j));
-			last = j;
+			if (!count(solutionChild.begin(), solutionChild.end(), parent2.at(j)))
+			{
+				solutionChild.push_back(parent2.at(j));
+			}
 		}
 	}
 
 	for (int i = last; i < parent1.size() - 1; i++)
 	{
-		solutionChild.push_back(parent1.at(i));
+		if (!count(solutionChild.begin(), solutionChild.end(), parent1.at(i)))
+		{
+			solutionChild.push_back(parent1.at(i));
+		}
 	}
 
 	for (int i = last; i < parent1.size() - 1; i++)
 	{
-		solutionChild.push_back(parent2.at(i));
+		if (!count(solutionChild.begin(), solutionChild.end(), parent1.at(i)))
+		{
+			solutionChild.push_back(parent2.at(i));
+		}
 	}
 
-	solutionChild.erase(remove_duplicates(solutionChild.begin(), solutionChild.end()), solutionChild.end());
 	return solutionChild;
+}
+
+void mutateSolution(vector<int>* solution)
+{
+	srand(time(0));
+	for (int i = 0; i < rand() % 3; i++)
+	{
+		iter_swap(solution->begin() + (rand() % (solution->size() - 2)) + 1, solution->begin() + (rand() % (solution->size() - 2)));
+	}
 }
 
 void sortSolutionsByDistance(vector<Solution*>* solutions) {
@@ -111,6 +112,7 @@ int main()
 	{
 		shuffle(dummy_solution.begin(), dummy_solution.end(), default_random_engine(static_cast<unsigned int>(chrono::system_clock::now().time_since_epoch().count())));
 		solutions.at(i) = new Solution(dummy_solution);
+		mutateSolution(&(solutions.at(i)->solution));
 		solutions.at(i)->solutionFitness(cityGraphMatrix);
 	}
 	sortSolutionsByDistance(&solutions);
@@ -140,7 +142,7 @@ int main()
 		sortSolutionsByDistance(&solutions);
 		
 		cout << "Best score for generation " << igen + 1 << " is: " << solutions.at(0)->distance << endl;
-		cout << "Best path for genreation " << igen << "is: ";
+		cout << "Best path for genreation " << igen + 1 << "is: ";
 		cout << "{ ";
 		for (int i = 0; i < solutions.at(0)->solution.size(); i++)
 		{
@@ -150,13 +152,9 @@ int main()
 		cout << " }";
 		cout << endl;
 
-		if (current_shortest_path == solutions.at(0)->distance) {
-			break;
-		}
-		else {
-			cout << "SOLUTION IS CONVERING!";
-			current_shortest_path = solutions.at(0)->distance;
-		}
+
+		current_shortest_path = solutions.at(0)->distance;
+
 		parents.clear();
 	}
 }
