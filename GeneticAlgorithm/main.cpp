@@ -68,7 +68,6 @@ vector<int> mateSolutions(vector<int> parent1, vector<int> parent2)
 //mutates solutions
 void mutateSolution(vector<int>* solution)
 {
-	srand(time(0));
 	for (int i = 0; i < rand() % 3; i++)
 	{
 		iter_swap(solution->begin() + (rand() % (solution->size() - 2)) + 1, solution->begin() + (rand() % (solution->size() - 2)));
