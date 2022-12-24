@@ -9,80 +9,17 @@
 #include "CityMap.h"
 #include "CityGraph.h"
 #include "Solution.h"
+#include "GeneticAlgorithm.h"
+#include "TicketsPool.h"
 
 
 using namespace std;
 
-//creates vector of tickets, best parent solution will have most tickets
-void createTicketsVector(vector<int>* ticketsVector, int parent_size)
-{
-	int current_ticket = 0;
-	for (int i = parent_size; i >= 0; i--)
-	{
-		for (int j = 0; j < i; j++)
-		{
-			ticketsVector->push_back(current_ticket);
-		}
-
-		++current_ticket;
-	}
-}
 //creates vector with n elements in ascending order 0,1,2,3...n-1
 void createDummySolutions(vector<int>* dummy_solutions) {
 	for (int i = 0; i < dummy_solutions->size(); i++)
 	{
 		dummy_solutions->at(i) = i;
-	}
-}
-//mates two solutions in specific way
-vector<int> mateSolutions(vector<int> parent1, vector<int> parent2)
-{
-	vector<int> solutionChild;
-	int last = 0;
-
-	for (int i = 0; i < floor(parent1.size() / 6); i++)
-	{
-		for (int j = i * 6; j < (i + 1) * 6; j++)
-		{
-			if (!count(solutionChild.begin(), solutionChild.end(), parent1.at(j)))
-			{
-				solutionChild.push_back(parent1.at(j));
-			}
-		}
-
-		for (int j = i * 6; j < (i + 1) * 6; j++)
-		{
-			if (!count(solutionChild.begin(), solutionChild.end(), parent2.at(j)))
-			{
-				solutionChild.push_back(parent2.at(j));
-			}
-		}
-	}
-
-	for (int i = last; i < parent1.size() - 1; i++)
-	{
-		if (!count(solutionChild.begin(), solutionChild.end(), parent1.at(i)))
-		{
-			solutionChild.push_back(parent1.at(i));
-		}
-	}
-
-	for (int i = last; i < parent1.size() - 1; i++)
-	{
-		if (!count(solutionChild.begin(), solutionChild.end(), parent1.at(i)))
-		{
-			solutionChild.push_back(parent2.at(i));
-		}
-	}
-
-	return solutionChild;
-}
-//mutates solutions
-void mutateSolution(vector<int>* solution, int number_of_mutations)
-{
-	for (int i = 0; i < rand() % 3; i++)
-	{
-		iter_swap(solution->begin() + (rand() % (solution->size() - 2)) + 1, solution->begin() + (rand() % (solution->size() - 2)));
 	}
 }
 
@@ -105,6 +42,7 @@ int main()
 	const int GENERATION_SIZE = 11000;
 	const int N_GENERATION = 300;
 	const int N_MUTATIONS = 9;
+	const int SUBSTRING_MATING_PERCENT_DENOMINATOR = 3;
 	//Getting number of cities in file
     int number_of_cities = ReadCityFile::cityCount();
 
@@ -124,8 +62,9 @@ int main()
 
 	//creating tickets vector
 	vector<int> vectorTickets;
-	createTicketsVector(&vectorTickets, PARENT_SIZE);
-	shuffle(vectorTickets.begin(), vectorTickets.end(), default_random_engine(static_cast<unsigned int>(chrono::system_clock::now().time_since_epoch().count())));
+	TicketsPool ticket_pool(vectorTickets);
+	ticket_pool.createTicketsVector(PARENT_SIZE);
+	
 	
 	//creating first generation, shuffling dummy_solutions which are vectors from 0 to number of cities
 	for (int i = 0; i < GENERATION_SIZE; i++)
@@ -155,9 +94,9 @@ int main()
 		//creating new children solutions and mutating them
 		srand(time(0));
 		for (int i = floor(PARENT_SIZE / 8); i < GENERATION_SIZE; i++) {
-			solutions.push_back(new Solution(mateSolutions(parents.at(vectorTickets.at(rand() % vectorTickets.size()))->solution, parents.at(vectorTickets.at(rand() % vectorTickets.size()))->solution)));
+			solutions.push_back(new Solution(GeneticAlgorithm::mateSolutions(parents.at(ticket_pool.tickets_vector.at(rand() % ticket_pool.tickets_vector.size()))->solution, parents.at(ticket_pool.tickets_vector.at(rand() % ticket_pool.tickets_vector.size()))->solution, SUBSTRING_MATING_PERCENT_DENOMINATOR)));
 			solutions.at(i)->solutionFitness(cityGraphMatrix);
-			mutateSolution(&(solutions.at(i)->solution), N_MUTATIONS);
+			GeneticAlgorithm::mutateSolution(&(solutions.at(i)->solution), N_MUTATIONS);
 		}
 
 		//Sorting solutions and displaying the best one in given generation
