@@ -38,11 +38,12 @@ void sortSolutionsByDistance(vector<Solution*>* solutions) {
 int main()
 {
 	//defining const
-	const int PARENT_SIZE = 1000;
-	const int GENERATION_SIZE = 11000;
-	const int N_GENERATION = 300;
-	const int N_MUTATIONS = 9;
-	const int SUBSTRING_MATING_PERCENT_DENOMINATOR = 3;
+	const int PARENT_SIZE = 1000; //tells how many parents we take from population
+	const int GENERATION_SIZE = 15000; //tells how big population is
+	const int N_GENERATION = 500; //how many geneartions we simulate
+	const int N_MUTATIONS = 3; //maximal number of mutations in born solution
+	const int N_SUBSTRING_PARTS_IN_MATING = 6; //what is a step of a subarray we take when we mate two solutions
+	const int N_PARENT_SIZE_THAT_SURVIOVE_DENOMINATOR = 6; //part of parents that surivive to the next generation
 	//Getting number of cities in file
     int number_of_cities = ReadCityFile::cityCount();
 
@@ -87,14 +88,14 @@ int main()
 		//creating parents from top N solutions in last generation and getting them back in solutions
 		copy(solutions.begin(), solutions.begin() + PARENT_SIZE, back_inserter(parents));
 		solutions.clear();
-		for (int i = 0; i < floor(PARENT_SIZE / 8); i++) {
+		for (int i = 0; i < floor(PARENT_SIZE / N_PARENT_SIZE_THAT_SURVIOVE_DENOMINATOR); i++) {
 			solutions.push_back(parents.at(i));
 		}
 
 		//creating new children solutions and mutating them
 		srand(time(0));
-		for (int i = floor(PARENT_SIZE / 8); i < GENERATION_SIZE; i++) {
-			solutions.push_back(new Solution(GeneticAlgorithm::mateSolutions(parents.at(ticket_pool.tickets_vector.at(rand() % ticket_pool.tickets_vector.size()))->solution, parents.at(ticket_pool.tickets_vector.at(rand() % ticket_pool.tickets_vector.size()))->solution, SUBSTRING_MATING_PERCENT_DENOMINATOR)));
+		for (int i = floor(PARENT_SIZE / N_PARENT_SIZE_THAT_SURVIOVE_DENOMINATOR); i < GENERATION_SIZE; i++) {
+			solutions.push_back(new Solution(GeneticAlgorithm::mateSolutions(&parents.at(ticket_pool.tickets_vector.at(rand() % ticket_pool.tickets_vector.size()))->solution, &parents.at(ticket_pool.tickets_vector.at(rand() % ticket_pool.tickets_vector.size()))->solution, N_SUBSTRING_PARTS_IN_MATING)));
 			solutions.at(i)->solutionFitness(cityGraphMatrix);
 			GeneticAlgorithm::mutateSolution(&(solutions.at(i)->solution), N_MUTATIONS);
 		}
