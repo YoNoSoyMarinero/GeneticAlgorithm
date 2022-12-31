@@ -11,97 +11,72 @@
 #include "Solution.h"
 #include "GeneticAlgorithm.h"
 #include "TicketsPool.h"
+#include "DummySolutions.h"
+#include "SortSolutions.h"
 
 
 using namespace std;
 
-//creates vector with n elements in ascending order 0,1,2,3...n-1
-void createDummySolutions(vector<int>* dummy_solutions) {
-	for (int i = 0; i < dummy_solutions->size(); i++)
-	{
-		dummy_solutions->at(i) = i;
-	}
-}
 
-//sort solutions
-void sortSolutionsByDistance(vector<Solution*>* solutions) {
-	int i, j;
-
-	for (i = 0; i < solutions->size() - 1; i++) {
-		for (j = 0; j < solutions->size() - i - 1; j++) {
-			if (solutions->at(j)->distance > solutions->at(j + 1)->distance)
-				swap(solutions->at(j), solutions->at(j + 1));
-		}
-	}
-}
-
+//main function implements Genetic Alorithm that finds shortest path between cities
 int main()
 {
-	//defining const
-	const int PARENT_SIZE = 1000; //tells how many parents we take from population
-	const int GENERATION_SIZE = 15000; //tells how big population is
-	const int N_GENERATION = 500; //how many geneartions we simulate
-	const int N_MUTATIONS = 3; //maximal number of mutations in born solution
-	const int N_SUBSTRING_PARTS_IN_MATING = 6; //what is a step of a subarray we take when we mate two solutions
-	const int N_PARENT_SIZE_THAT_SURVIOVE_DENOMINATOR = 6; //part of parents that surivive to the next generation
-	//Getting number of cities in file
+	//Defining constants
+
+	const int PARENT_SIZE = 100; //number of parents
+	const int GENERATION_SIZE = 1000; //number of solutions in population
+	const int N_GENERATION = 150; //number of generation
+	const int N_MUTATIONS = 5; //maximal number of possible mutation
+	const int N_SUBPATHS_IN_MATING = 6; //number of subpaths in mating function
+	const int NTH_PART_OF_SURVIVED_PARENTS = 5; //part of parents that survives to the next generation
+	
+	//Number of cities
     int number_of_cities = ReadCityFile::cityCount();
 
-	//Read file gets vector of strings wich represenst each row in file, row reptresnts city No. x postion and y postion
-	//City map createMap returns vector of Citties with thier No. x and y coordinates
+	//Reading data and creating graph(LUT of distances)
 	vector<City>* cities_in_file = CityMap::createMap(ReadCityFile::readFile(), number_of_cities);
-
-	//cityGraph is just matrix where intersection between rows and columns represent distance between two cities with No - 1 name
 	double** cityGraphMatrix = CityGraph::getGraph(cities_in_file, number_of_cities);
 
-	//creating dummy solutions vectors with values 0,1,2... to number of cities, this represents first permutaion of many
+
+	//Creating and simulating generation 0
 	vector<int> dummy_solution(number_of_cities);
-	createDummySolutions(&dummy_solution);
-
-	//creating generation of solutions, first generation
+	DummySolutions::createDummySolutions(&dummy_solution);
 	vector<Solution*>solutions(GENERATION_SIZE);
-
-	//creating tickets vector
 	vector<int> vectorTickets;
 	TicketsPool ticket_pool(vectorTickets);
 	ticket_pool.createTicketsVector(PARENT_SIZE);
 	
-	
-	//creating first generation, shuffling dummy_solutions which are vectors from 0 to number of cities
 	for (int i = 0; i < GENERATION_SIZE; i++)
 	{
 		shuffle(dummy_solution.begin(), dummy_solution.end(), default_random_engine(static_cast<unsigned int>(chrono::system_clock::now().time_since_epoch().count())));
 		solutions.at(i) = new Solution(dummy_solution);
 		solutions.at(i)->solutionFitness(cityGraphMatrix);
 	}
+	SortSolutions::sortSolutionsByDistance(&solutions);
 
-	//sorting solutions
-	sortSolutionsByDistance(&solutions);
-
-	double current_shortest_path = solutions.at(0)->distance;
 	vector<Solution*> parents;
 	
 
-	//simulation evolution
+	//Genetic Algorithm simulation (Evolution)
 	for (int igen = 0; igen < N_GENERATION; igen++) {
 
-		//creating parents from top N solutions in last generation and getting them back in solutions
+		//creating parents
 		copy(solutions.begin(), solutions.begin() + PARENT_SIZE, back_inserter(parents));
 		solutions.clear();
-		for (int i = 0; i < floor(PARENT_SIZE / N_PARENT_SIZE_THAT_SURVIOVE_DENOMINATOR); i++) {
+		for (int i = 0; i < floor(PARENT_SIZE / NTH_PART_OF_SURVIVED_PARENTS); i++) {
 			solutions.push_back(parents.at(i));
 		}
 
-		//creating new children solutions and mutating them
+		//creating new children and mutating them
 		srand(time(0));
-		for (int i = floor(PARENT_SIZE / N_PARENT_SIZE_THAT_SURVIOVE_DENOMINATOR); i < GENERATION_SIZE; i++) {
-			solutions.push_back(new Solution(GeneticAlgorithm::mateSolutions(&parents.at(ticket_pool.tickets_vector.at(rand() % ticket_pool.tickets_vector.size()))->solution, &parents.at(ticket_pool.tickets_vector.at(rand() % ticket_pool.tickets_vector.size()))->solution, N_SUBSTRING_PARTS_IN_MATING)));
+		for (int i = floor(PARENT_SIZE / NTH_PART_OF_SURVIVED_PARENTS); i < GENERATION_SIZE; i++) {
+			solutions.push_back(new Solution(GeneticAlgorithm::mateSolutions(&parents.at(ticket_pool.tickets_vector.at(rand() % ticket_pool.tickets_vector.size()))->solution, &parents.at(ticket_pool.tickets_vector.at(rand() % ticket_pool.tickets_vector.size()))->solution, N_SUBPATHS_IN_MATING)));
 			solutions.at(i)->solutionFitness(cityGraphMatrix);
 			GeneticAlgorithm::mutateSolution(&(solutions.at(i)->solution), N_MUTATIONS);
 		}
 
-		//Sorting solutions and displaying the best one in given generation
-		sortSolutionsByDistance(&solutions);
+		//sorting solutions and displaying the best one in given generation
+		SortSolutions::sortSolutionsByDistance(&solutions);
 		cout << "Best score for generation " << igen + 1 << " is: " << solutions.at(0)->distance << endl;
 		cout << "Best path for genreation " << igen + 1 << " is: ";
 		cout << "{ ";
@@ -112,9 +87,6 @@ int main()
 		}
 		cout << " end }";
 		cout << endl;
-
-		//setting the new best path
-		current_shortest_path = solutions.at(0)->distance;
 
 		parents.clear();
 	}

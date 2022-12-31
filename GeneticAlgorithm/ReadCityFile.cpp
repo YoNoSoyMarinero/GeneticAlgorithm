@@ -12,7 +12,7 @@ using namespace std;
 vector<string>* ReadCityFile::readFile() {
 	vector<string>* read_lines = new vector<string>();
 	fstream myFile;
-	myFile.open("data_tsp.txt", ios::in);
+	myFile.open("cities.txt", ios::in);
 
 	if (myFile.is_open()) {
 		string line;
@@ -32,7 +32,7 @@ vector<string>* ReadCityFile::readFile() {
 int ReadCityFile::cityCount(){
 	int counter = 0;
 	fstream myFile;
-	myFile.open("data_tsp.txt", ios::in);
+	myFile.open("cities.txt", ios::in);
 
 	if (myFile.is_open()) {
 		string line;

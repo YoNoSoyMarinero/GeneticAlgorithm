@@ -1,6 +1,7 @@
 #include "GeneticAlgorithm.h"
 
 
+//mates solutions
 vector<int> GeneticAlgorithm::mateSolutions(vector<int> *parent1, vector<int> *parent2, int substring_percent)
 {
 	vector<int> solutionChild;

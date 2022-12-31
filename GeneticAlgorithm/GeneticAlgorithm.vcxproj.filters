@@ -39,6 +39,12 @@
     <ClCompile Include="TicketsPool.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="DummySolutions.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SortSolutions.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ReadCityFile.h">
@@ -60,6 +66,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="TicketsPool.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DummySolutions.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SortSolutions.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
