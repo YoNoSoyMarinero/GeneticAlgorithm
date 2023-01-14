@@ -1,6 +1,6 @@
 #include "SortSolutions.h"
 
-
+//sorting solutions by distance in ascending order
 void SortSolutions::sortSolutionsByDistance(vector<Solution*>* solutions) {
 	int i, j;
 

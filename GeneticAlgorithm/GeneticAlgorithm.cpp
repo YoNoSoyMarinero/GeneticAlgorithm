@@ -24,6 +24,8 @@ vector<int> GeneticAlgorithm::mateSolutions(vector<int> *parent1, vector<int> *p
 				solutionChild.push_back(parent2->at(j));
 			}
 		}
+
+		last = i;
 	}
 
 	for (int i = last; i < parent1->size() - 1; i++)
