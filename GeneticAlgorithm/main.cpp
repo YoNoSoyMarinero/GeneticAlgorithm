@@ -71,8 +71,8 @@ int main()
 		srand(time(0));
 		for (int i = floor(PARENT_SIZE / NTH_PART_OF_SURVIVED_PARENTS); i < GENERATION_SIZE; i++) {
 			solutions.push_back(new Solution(GeneticAlgorithm::mateSolutions(&parents.at(ticket_pool.tickets_vector.at(rand() % ticket_pool.tickets_vector.size()))->solution, &parents.at(ticket_pool.tickets_vector.at(rand() % ticket_pool.tickets_vector.size()))->solution, N_SUBPATHS_IN_MATING)));
-			solutions.at(i)->solutionFitness(cityGraphMatrix);
 			GeneticAlgorithm::mutateSolution(&(solutions.at(i)->solution), N_MUTATIONS);
+			solutions.at(i)->solutionFitness(cityGraphMatrix);
 		}
 
 		//sorting solutions and displaying the best one in given generation
